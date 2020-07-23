@@ -12,11 +12,11 @@
       "WithStatement"
     ],
     "no-unused-vars": [
-      1,
-      {
+      1
+      /*       {
         "ignoreSiblings": true,
         "argsIgnorePattern": "res|next|^err"
-      }
+      } */
     ],
     "prefer-const": [
       "error",
