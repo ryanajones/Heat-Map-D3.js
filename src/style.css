@@ -25,10 +25,13 @@ body {
     );
   background-size: 7px 7px;
 }
-
+.chart {
+  height: 100px;
+  width: 100px;
+}
 .svg {
   position: relative;
-  /*   background-image: radial-gradient(
+  background-image: radial-gradient(
       circle at center center,
       hsla(166, 0%, 10%, 1) 0%,
       hsla(181, 0%, 10%, 1) 29%,
@@ -40,10 +43,14 @@ body {
       rgb(35, 35, 35) 50%,
       rgb(35, 35, 35) 50%,
       rgb(35, 35, 35) 100%
-    ); */
+    );
   background-size: 7px 7px;
   background-color: rgb(83, 64, 64);
 }
+
+/* .legend {
+  stroke: white;
+} */
 /* 
 .chart-container {
   position: relative;

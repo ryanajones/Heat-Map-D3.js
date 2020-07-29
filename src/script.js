@@ -34,12 +34,7 @@ const h = 800;
 const padding = 60;
 
 // defining the svg chart here
-const svg = d3
-  .select('body')
-  .append('svg')
-  /*   .attr('class', 'svg') */
-  .attr('width', w)
-  .attr('height', h);
+const svg = d3.select('body').append('svg').attr('width', w).attr('height', h);
 
 // defining the titles here
 svg
@@ -136,7 +131,12 @@ d3.json(
     .attr('fill', function (d) {
       return colorScale(d.variance + data.baseTemperature);
     });
+  console.log(
+    data.baseTemperature + varianceMin,
+    data.baseTemperature + varianceMax
+  );
 
+  console.log(varianceMin, varianceMax);
   /*   const svg2 = d3
     .select('body')
     .append('svg')
@@ -144,37 +144,71 @@ d3.json(
     .attr('height', 200); */
 
   // defining the legend here
+  const minTemp = data.baseTemperature + varianceMin;
+  const maxTemp = data.baseTemperature + varianceMax;
 
-  const color = d3.scaleOrdinal(['#7369D8', '#FE5A5E']);
-  const legendContainer = svg.append('g').attr('id', 'legend');
+  svg.append('g').attr('class', 'legend');
 
-  const legend = legendContainer
-    .selectAll('#legend')
-    .data(color.domain())
+  const threshold = d3
+    .scaleThreshold()
+    .domain(
+      (function (min, max, count) {
+        const arr = [];
+        const step = (max - min) / count;
+        const base = min;
+        for (let i = 1; i < count; i++) {
+          arr.push(base + i * step);
+        }
+        return arr;
+      })(minTemp, maxTemp, colors.length)
+    )
+    .range(colors);
+
+  const xLegendScale = d3
+    .scaleLinear()
+    .domain([minTemp, maxTemp])
+    .range([0, 500]);
+
+  const xLegendAxis = d3
+    .axisBottom(xLegendScale)
+    .tickSize(30)
+    .tickValues(threshold.domain())
+    .tickFormat(d3.format('.1f'));
+  /*     .attr('transform', 'translate(200, 30)'); */
+
+  const legend = d3
+    .select('.legend')
+    .call(xLegendAxis)
+    .attr('transform', 'translate(500, 700)');
+
+  legend.select('.domain').remove();
+
+  legend
+    .selectAll('rect')
+    .data(
+      threshold.range().map((color) => {
+        const d = threshold.invertExtent(color);
+        const [zero, one] = xLegendScale.domain();
+        if (d[0] == null) d[0] = zero;
+        if (d[1] == null) d[1] = one;
+        return d;
+      })
+    )
     .enter()
-    .append('g')
-    .attr('class', 'legend-label')
-    .attr('transform', `translate(100,100)`);
+    .insert('rect', '.tick')
+    .attr('height', 20)
+    .attr('x', function (d) {
+      return xLegendScale(d[0]);
+    })
+    .attr('width', function (d) {
+      return xLegendScale(d[1]) - xLegendScale(d[0]);
+    })
+    .attr('fill', function (d) {
+      return threshold(d[0]);
+    })
+    .attr('transform', 'translate(0, 0)');
 
-  legend
-    .append('rect')
-    .attr('x', 100)
-    .attr('y', 100)
-    .attr('width', 300)
-    .attr('height', 300)
-    .attr('ry', '9')
-    .style('fill', color);
-
-  legend
-    .append('text')
-    .attr('x', 100)
-    .attr('y', 43)
-    .attr('dy', '.35em')
-    .style('fill', '#dde1e5')
-    .style('text-anchor', 'end')
-    .text(function (d) {
-      if (d) return 'Riders with doping allegations';
-
-      return 'No doping allegations';
-    });
+  /*     .tickFormat(function (d) {
+      return d === 0.5 ? formatPercent(d) : formatNumber(100 * d);
+    }) */
 });

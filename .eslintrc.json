@@ -18,6 +18,7 @@
         "argsIgnorePattern": "res|next|^err"
       } */
     ],
+    "no-plusplus": [0],
     "prefer-const": [
       "error",
       {
