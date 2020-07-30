@@ -4,7 +4,7 @@ const months = [
   'January',
   'February',
   'March',
-  'april',
+  'April',
   'May',
   'June',
   'July',
@@ -33,25 +33,38 @@ const w = 1500;
 const h = 800;
 const padding = 60;
 
+const tooltip = d3
+  .select('body')
+  .append('div')
+  .attr('id', 'tooltip')
+  .style('opacity', 0);
+
 // defining the svg chart here
 const svg = d3.select('body').append('svg').attr('width', w).attr('height', h);
 
-// defining the titles here
 svg
   .append('text')
   .attr('id', 'title')
-  .attr('x', 150)
-  .attr('y', 27)
-  .text('Heat map')
+  .attr('x', 460)
+  .attr('y', 70)
+  .text('Monthly Global Land-Surface Temperature')
   .style('fill', 'white');
 
 svg
   .append('text')
   .attr('id', 'description')
-  .attr('x', 150)
-  .attr('y', 50)
-  .text('description')
+  .attr('x', 600)
+  .attr('y', 123)
+  .text('1753 - 2015: base temperature 8.66℃')
   .style('fill', 'white');
+
+svg
+  .append('text')
+  .attr('x', -400)
+  .attr('y', 38)
+  .attr('transform', 'rotate(-90)')
+  .style('fill', '#dde1e5')
+  .text('Months');
 
 d3.json(
   'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/global-temperature.json'
@@ -62,16 +75,17 @@ d3.json(
   const getMonthName = (el) => months[el - 1];
   monthlyData.map((d) => (d.monthName = getMonthName(d.month)));
 
-  // extracting variance from each object
+  monthlyData.map(
+    (d) => (d.temperature = (data.baseTemperature + d.variance).toFixed(1))
+  );
+
   const variance = monthlyData.map((d) => d.variance);
 
-  // extracting years from each object
   let yearData = monthlyData.map((d) => d.year);
 
   // removing duplicate years here
   yearData = yearData.filter((d, i) => yearData.indexOf(d) === i);
 
-  // extracting min and max variances for color quantile scale
   const varianceMin = d3.min(variance, (d) => d);
   const varianceMax = d3.max(variance, (d) => d);
 
@@ -84,7 +98,6 @@ d3.json(
     ])
     .range(colors);
 
-  // getting minimum and maximum year to define the x scale
   const minYear = monthlyData[0].year;
   const maxYear = monthlyData[monthlyData.length - 1].year;
 
@@ -116,7 +129,7 @@ d3.json(
     .attr('transform', 'translate(130,0)')
     .attr('id', 'y-axis');
 
-  // adding the tempurature rectangles here
+  // adding the tempurature cells here
   svg
     .selectAll('.cell')
     .data(monthlyData)
@@ -129,25 +142,32 @@ d3.json(
     .attr('height', 470 / months.length)
     .attr('transform', 'translate(0, 0)')
     .attr('fill', function (d) {
-      return colorScale(d.variance + data.baseTemperature);
+      return colorScale(d.temperature);
+    })
+    .attr('data-month', (d) => d.month - 1)
+    .attr('data-year', (d) => d.year)
+    .attr('data-temp', (d) => d.temperature)
+    .on('mouseover', (d, i) => {
+      tooltip.transition().duration(200).style('opacity', 0.9);
+      tooltip
+        .html(
+          `${d.year} - ${d.monthName}<br> ${
+            d.temperature
+          }℃ <br>${d.variance.toFixed(1)}℃`
+        )
+        .attr('data-year', d.year)
+        .style('left', `${xScale(new Date(d.year, 0)) + 12}px`)
+        .style('top', `${yScale(d.monthName)}px`);
+    })
+    .on('mouseout', () => {
+      tooltip.transition().duration(200).style('opacity', 0);
     });
-  console.log(
-    data.baseTemperature + varianceMin,
-    data.baseTemperature + varianceMax
-  );
-
-  console.log(varianceMin, varianceMax);
-  /*   const svg2 = d3
-    .select('body')
-    .append('svg')
-    .attr('width', 200)
-    .attr('height', 200); */
 
   // defining the legend here
   const minTemp = data.baseTemperature + varianceMin;
   const maxTemp = data.baseTemperature + varianceMax;
 
-  svg.append('g').attr('class', 'legend');
+  svg.append('g').attr('id', 'legend');
 
   const threshold = d3
     .scaleThreshold()
@@ -174,10 +194,8 @@ d3.json(
     .tickSize(30)
     .tickValues(threshold.domain())
     .tickFormat(d3.format('.1f'));
-  /*     .attr('transform', 'translate(200, 30)'); */
-
   const legend = d3
-    .select('.legend')
+    .select('#legend')
     .call(xLegendAxis)
     .attr('transform', 'translate(500, 700)');
 
@@ -208,7 +226,12 @@ d3.json(
     })
     .attr('transform', 'translate(0, 0)');
 
-  /*     .tickFormat(function (d) {
-      return d === 0.5 ? formatPercent(d) : formatNumber(100 * d);
-    }) */
+  svg
+    .append('text')
+    .attr('class', 'fa fa-2x')
+    .attr('x', 446)
+    .attr('y', 722)
+    .style('fill', '#dde1e5')
+    .style('background', 'blue')
+    .text('\uf76b');
 });
