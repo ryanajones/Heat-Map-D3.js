@@ -1,6 +1,6 @@
 # Heat Map D3.js
 
-This is a data visualization heat map using the D3.js library. It shows the monthly global land-surface temperatures from years 1753 - 2015.
+> A data heat map of the monthly global land-surface temperatures from years 1753 - 2015. The D3.js library is used to convert JSON data into SVG visualizations. 
 
 ## Technologies Used
 
